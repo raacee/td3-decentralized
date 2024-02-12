@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
+from lightgbm import LGBMClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score
-from lightgbm import LGBMClassifier
 
 
 data = pd.read_csv('final.csv')
