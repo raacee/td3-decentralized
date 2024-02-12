@@ -30,9 +30,16 @@ app.post('/orders', (req, res) => {
   res.json(newOrder);
 });
 
+let newOrder = {
+    orderId: 1,
+    products: 'Hammer',
+    totalPrice: 21.99
+  };
+  
+
 
 app.get('/orders', (req, res) => {
-  res.json(orders);
+  res.json(newOrder);
 });
 
 app.listen(port, () => {
