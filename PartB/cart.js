@@ -8,7 +8,7 @@ const app = express();
 const PORT = 3000;
 
 // Sample data for products
-axios.get('http://localhost:4200/products')
+axios.get('http://localhost:3000/products')
     .then(response => {
         const products = response.data;
     })
