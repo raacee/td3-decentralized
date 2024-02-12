@@ -12,9 +12,12 @@ model User {
 }
 
 model Product {
-  id      Int      @id @default(autoincrement())
-  name    String?
-  desc    String?
+  id          Int       @id @default(autoincrement())
+  product     String?
+  price       Int
+  category    String?
+  inStock     Bool
+  description String?
 }
 
 // Add other tables
