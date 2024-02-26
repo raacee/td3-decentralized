@@ -1,0 +1,181 @@
+<!--Create a simple front-end to interact with the postgre server. Please note that style is not the priority here. 
+    You can use tools like Bootstrap or Ant Design if you want. Just don't spend too much time on this task.
+
+The front-end has the following features:
+
+1. A form to add a new user to the database. The form should have the following fields:
+    - Name
+    - Gender
+    - Age
+    - A submit button to add the user to the database and assign an ID.
+
+2. A table to display all the products in the database. The table should have the following columns:
+    - ID
+    - product
+    - price
+    - quantity
+    - category
+    - inStock
+    - description
+
+3. A button to add a product to a cart. The button should be next to each product in the table. When the button is clicked, the product should be added to the cart.
+
+4. A table to display all the products in the cart. 
+    - A button to remove the product from the cart. 
+
+5. A button to checkout. When the button is clicked, the user is taken to a different webpage to pay, then the cart should be emptied.
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Shop</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Create new user</h1>
+        <form id="userForm" action="addUser.php" method="post">
+            <label for="name"> Name :</label>
+            <input type="text" id="name" name="name" required><br>
+            <label for="gender">Gender :</label>
+            <input type="text" id="gender" name="gender" required><br>
+            <label for="age"> Age :  </label>
+            <input type="number" id="age" name="age" required><br>
+            <button type="submit" class="btn btn-primary">Add User</button>
+        </form>
+        <h1>Products</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Category</th>
+                    <th>In stock</th>
+                    <th>Description</th>
+                    <th>Add to cart</th>
+                </tr>
+            </thead>
+            <tbody id="productTableBody">
+                <!--Gets the data for the table from the postgre database-->
+            </tbody>
+        </table>
+        <h2>Cart</h2>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Category</th>
+                    <th>In stock</th>
+                    <th>Description</th>
+                    <th>Remove from cart</th>
+                </tr>
+            </thead>
+            <tbody id="cartTableBody">
+                <!--Same here-->
+            </tbody>
+        </table>
+        <button id="checkoutBtn" class="btn btn-success">Checkout</button>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Function to add a new user
+        document.getElementById('userForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent default form submission
+            
+            // Get user input values
+            var name = document.getElementById('name').value;
+            var gender = document.getElementById('gender').value;
+            var age = document.getElementById('age').value;
+    
+            // Example: Send AJAX request to add user (Replace with your actual backend endpoint)
+            // $.ajax({
+            //     url: '/api/addUser',
+            //     method: 'POST',
+            //     data: { name: name, gender: gender, age: age },
+            //     success: function(response) {
+            //         // Handle success response
+            //     },
+            //     error: function(xhr, status, error) {
+            //         // Handle error
+            //     }
+            // });
+    
+            // For demonstration purpose, log user data
+            console.log('New User:', name, gender, age);
+    
+            // Clear the form fields
+            document.getElementById('name').value = '';
+            document.getElementById('gender').value = '';
+            document.getElementById('age').value = '';
+        });
+    
+        // Function to add product to cart
+        function addToCart(productId) {
+            // Example: Send AJAX request to add product to cart (Replace with your actual backend endpoint)
+            // $.ajax({
+            //     url: '/api/addToCart',
+            //     method: 'POST',
+            //     data: { productId: productId },
+            //     success: function(response) {
+            //         // Handle success response
+            //     },
+            //     error: function(xhr, status, error) {
+            //         // Handle error
+            //     }
+            // });
+    
+            // For demonstration purpose, log the added product ID
+            console.log('Product added to cart:', productId);
+        }
+    
+        // Function to remove product from cart
+        function removeFromCart(productId) {
+            // Example: Send AJAX request to remove product from cart (Replace with your actual backend endpoint)
+            // $.ajax({
+            //     url: '/api/removeFromCart',
+            //     method: 'POST',
+            //     data: { productId: productId },
+            //     success: function(response) {
+            //         // Handle success response
+            //     },
+            //     error: function(xhr, status, error) {
+            //         // Handle error
+            //     }
+            // });
+    
+            // For demonstration purpose, log the removed product ID
+            console.log('Product removed from cart:', productId);
+        }
+    
+        // Function to handle checkout
+        document.getElementById('checkoutBtn').addEventListener('click', function() {
+            // Example: Send AJAX request to checkout (Replace with your actual backend endpoint)
+            // $.ajax({
+            //     url: '/api/checkout',
+            //     method: 'POST',
+            //     success: function(response) {
+            //         // Handle success response, e.g., redirect to payment page
+            //     },
+            //     error: function(xhr, status, error) {
+            //         // Handle error
+            //     }
+            // });
+    
+            // For demonstration purpose, log a message
+            console.log('Checkout clicked. Redirecting to payment page...');
+            
+            // Empty the cart (assuming successful checkout)
+            document.getElementById('cartTableBody').innerHTML = '';
+        });
+    </script>
+</body>
+</html>
