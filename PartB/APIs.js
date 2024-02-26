@@ -1,144 +1,162 @@
 const express = require('express');
 const app = express();
 const port = 3000;
-const bodyParser = require('body-parser');
-const axios = require('axios');
-
+const { Pool } = require('pg');
 app.use(express.json());
 
+const pool = new Pool({
+    user: 'postgres',
+    host: 'localhost',
+    database: 'ecommerce',
+    password: 'mdp',
+    port: 5432,
+});
+
 // ------------------ PRODUCTS ROUTES ------------------
+app.get('/products', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const { category, inStock } = req.query;
+        let query = 'SELECT * FROM products';
 
-// Dummy data for demonstration purposes
-let products = [
-    { id: 1, product: 'Hammer', price: 15.99, category: 'Tools', inStock: false, description: 'A versatile tool used for driving nails or breaking objects apart.' },
-    { id: 2, product: 'Mallet', price: 24.99, category: 'Tools', inStock: true, description: 'A hammer-like tool with a large, usually wooden head, used for striking chisels or driving in wooden dowels.' },
-    { id: 3, product: 'Saw', price: 12.99, category: 'Tools', inStock: true, description: 'A cutting tool consisting of a blade with a series of teeth, used for cutting through various materials.' },
-    { id: 4, product: 'Circular Saw', price: 29.99, category: 'Tools', inStock: false, description: 'A power tool with a circular blade, used for making straight or angled cuts in wood, metal, or plastic.' },
-    { id: 5, product: 'Jigsaw', price: 17.99, category: 'Tools', inStock: true, description: 'A power tool with a reciprocating blade, used for cutting curved or irregular shapes in wood, metal, or plastic.' },
-    { id: 6, product: 'Hedge Trimmer', price: 34.99, category: 'Tools', inStock: false, description: 'A gardening tool with a serrated blade, used for trimming or shaping hedges or bushes.' },
-    { id: 7, product: 'Screwdriver', price: 9.99, category: 'Tools', inStock: true, description: 'A hand tool with a shaped tip, used for turning screws or bolts.' },
-    { id: 8, product: 'Bubble Level', price: 14.99, category: 'Tools', inStock: true, description: 'A tool with a liquid-filled tube and a bubble, used for determining if a surface is level or plumb.' },
-    { id: 9, product: 'Adjustable Wrench', price: 11.99, category: 'Tools', inStock: true, description: 'A wrench with a movable jaw, used for gripping and turning nuts, bolts, or pipes of various sizes.' },
-    { id: 10, product: 'Measuring Tape', price: 16.99, category: 'Tools', inStock: true, description: 'A flexible ruler used for measuring distances or dimensions.' },
-    { id: 11, product: 'Electric Sander', price: 21.99, category: 'Tools', inStock: false, description: 'A power tool used for smoothing or finishing surfaces by abrasion with sandpaper.' },
-    { id: 12, product: 'Wire Stripper', price: 27.99, category: 'Tools', inStock: true, description: 'A tool used for removing insulation from electrical wires.' },
-    { id: 13, product: 'File', price: 10.99, category: 'Tools', inStock: true, description: 'A hand tool with roughened surfaces, used for shaping or smoothing wood, metal, or plastic.' },
-    { id: 14, product: 'Laser Level', price: 34.99, category: 'Tools', inStock: true, description: 'A leveling tool that emits laser beams to create a straight, horizontal or vertical reference line.' },
-    { id: 15, product: 'Paintbrush Set', price: 8.99, category: 'Painting Supplies', inStock: true, description: 'A set of brushes used for applying paint to surfaces.' },
-    { id: 16, product: 'Wood Glue', price: 5.99, category: 'Adhesives', inStock: true, description: 'A strong adhesive specifically designed for bonding wood surfaces together.' },
-    { id: 17, product: 'Sanding Block', price: 4.99, category: 'Finishing Supplies', inStock: false, description: 'A block-shaped tool with abrasive surfaces, used for smoothing or finishing surfaces by abrasion.' },
-    { id: 18, product: 'Safety Glasses', price: 3.99, category: 'Safety Equipment', inStock: true, description: 'Protective eyewear designed to protect the eyes from hazards during work.' },
-    { id: 19, product: 'Measuring Square', price: 6.99, category: 'Measurement Tools', inStock: true, description: 'A measuring tool with a right-angle shape, used for marking or checking squareness.' },
-    { id: 20, product: 'Paint Roller', price: 9.99, category: 'Painting Supplies', inStock: true, description: 'A cylindrical tool with a handle, used for applying paint quickly and evenly to large surfaces.' },
-    { id: 21, product: 'Caulking Gun', price: 7.99, category: 'Adhesives', inStock: true, description: 'A handheld tool used for dispensing caulk or sealant in a controlled manner.' },
-    { id: 22, product: 'Wire Cutter', price: 12.99, category: 'Electrical Tools', inStock: true, description: 'A tool with sharp blades, used for cutting electrical wires or other thin materials.' },
-    { id: 23, product: 'Garden Gloves', price: 4.99, category: 'Gardening Tools', inStock: true, description: 'Protective gloves worn during gardening tasks to shield hands from dirt, thorns, or chemicals.' },
-    { id: 24, product: 'Stud Finder', price: 14.99, category: 'Measurement Tools', inStock: true, description: 'A handheld device used to locate framing studs behind walls or other surfaces.' },
-  ];
+        if (category) {
+            query += ` WHERE category = '${category}'`;
+        }
 
-app.get('/products', (req, res) => {
-    const { category, inStock } = req.query;
+        if (inStock) {
+            const inStockValue = inStock.toLowerCase() === 'true';
+            query += ` AND stock_status = ${inStockValue}`;
+        }
 
-    let filteredProducts = products;
-
-    if (category) {
-        filteredProducts = filteredProducts.filter(product => product.category.toLowerCase() === category.toLowerCase());
+        const result = await client.query(query);
+        res.json(result.rows);
+        client.release();
     }
-
-    if (inStock) {
-        filteredProducts = filteredProducts.filter(product => product.inStock === (inStock === 'true'));
+    catch (error) {
+        console.error('Error fetching products:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-
-    res.json(filteredProducts);
 });
 
-app.get('/products/:id', (req, res) => {
-    const productId = parseInt(req.params.id);
-    const product = products.find(product => product.id === productId);
 
-    if (!product) {
-        res.status(404).json({ error: 'Product not found' });
-    } else {
+app.get('/products/:id', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const productId = parseInt(req.params.id);
+        const result = await client.query('SELECT * FROM products WHERE id = $1', [productId]);
+        const product = result.rows[0];
+
+        if (!product) {
+            res.status(404).json({ error: 'Product not found' });
+        } else {
+            res.json(product);
+        }
+
+        client.release();
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+
+app.post('/products', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const { name, price, description, category, inStock } = req.body;
+        const result = await client.query(
+            'INSERT INTO products (name, price, description, category, instock) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [name, price, description, category, inStock]
+        );
+        const product = result.rows[0];
         res.json(product);
+        client.release();
+    } catch (error) {
+        console.error('Error adding product:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.post('/products', (req, res) => {
-    const newProductId = products.length + 1;
-    const newProduct = { id: newProductId, ...req.body }
-    products.push(newProduct);
-    res.json(newProduct);
-});
 
-app.put('/products/:id', (req, res) => {
-    const newProductId = parseInt(req.params.id);
-    const updatedProduct = req.body;
-    let productIndex = products.findIndex(product => product.id === newProductId);
-
-    if (productIndex === -1) {
-        res.status(404).json({ error: 'Product not found' });
-    } else {
-        let product = products[productIndex];
-        product = { ...product, ...updatedProduct };
-        products[productIndex] = product;
-        res.json(product);
+app.put('/products/:id', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const productId = parseInt(req.params.id);
+        const updatedProduct = req.body;
+        const result = await client.query(
+            'UPDATE products SET name = $1, price = $2, description = $3, category = $4, instock = $5 WHERE id = $6 RETURNING *',
+            [updatedProduct.name, updatedProduct.price, updatedProduct.description, updatedProduct.category, updatedProduct.inStock, productId]
+        );
+        const updatedProductData = result.rows[0];
+        if (!updatedProductData) {
+            res.status(404).json({ error: 'Product not found' });
+        } else {
+            res.json(updatedProductData);
+        }
+        client.release();
+    } catch (error) {
+        console.error('Error updating product:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.delete('/products/:id', (req, res) => {
-    const productId = parseInt(req.params.id);
-    const productIndex = products.findIndex(product => product.id === productId);
 
-    if (productIndex === -1) {
-        res.status(404).json({ error: 'Product not found' });
-    } else {
-        const deletedProduct = products.splice(productIndex, 1)[0];
-        res.json({ message: 'Product deleted', product: deletedProduct });
+app.delete('/products/:id', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const productId = parseInt(req.params.id);
+        const result = await client.query('DELETE FROM products WHERE id = $1 RETURNING *', [productId]);
+        const deletedProduct = result.rows[0];
+        if (!deletedProduct) {
+            res.status(404).json({ error: 'Product not found' });
+        } else {
+            res.json({ message: 'Product deleted', product: deletedProduct });
+        }
+        client.release();
+    } catch (error) {
+        console.error('Error deleting product:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
 });
 
-app.listen(port, () => {
-    console.log(`E-commerce API server running at http://localhost:${port}`);
-});
 
 
 // ------------------ ORDERS ROUTES ------------------
-let orders = [];
-
-app.use(express.json());
-
-app.post('/orders', (req, res) => {
-    const { products } = req.body;
-
-    const orderId = generateOrderId();
-
-    const totalPrice = calculateTotalPrice(products);
-
-    const newOrder = {
-        orderId,
-        products,
-        totalPrice,
-        status: 'pending',
-    };
-
-    orders.push(newOrder);
-
-    res.json(newOrder);
+app.get('/orders', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const result = await client.query('SELECT * FROM orders');
+        const orders = result.rows;
+        res.json(orders);
+        client.release();
+    } catch (error) {
+        console.error('Error fetching orders:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-let newOrder = {
-    orderId: 1,
-    products: 'Hammer',
-    totalPrice: 21.99
-};
 
-app.get('/orders', (req, res) => {
-    res.json(newOrder);
+app.post('/orders', async (req, res) => {
+    try {
+        const client = await pool.connect();
+        const { products } = req.body;
+        const orderId = generateOrderId(); // Assuming a function for generating unique IDs
+        const totalPrice = calculateTotalPrice(products); // Assuming a function for calculating total price
+
+        const result = await client.query(
+            'INSERT INTO orders (order_id, products, total_price, status) VALUES ($1, $2, $3, $4) RETURNING *',
+            [orderId, products, totalPrice, 'pending']
+        );
+        const order = result.rows[0];
+
+        res.json(order);
+        client.release();
+    } catch (error) {
+        console.error('Error adding order:', error);
+        res.status(500).json({ error: 'Internal server error' });
+    }
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
-});
 
 // Helper function to generate a unique order ID
 function generateOrderId() {
@@ -151,86 +169,95 @@ function calculateTotalPrice(products) {
     for (const product of products) {
         totalPrice += product.price * product.quantity;
     }
-
     return totalPrice;
 }
 
 
 // ------------------ CART ROUTES ------------------
 
-// Sample data for products
-axios.get('http://localhost:3000/products')
-    .then(response => {
-        const products = response.data;
-    })
-    .catch(error => {
-        console.error('Error fetching products:', error);
-    });
-
-
-let carts = {};
-
-app.use(bodyParser.json());
-
 //POST /cart/:userId
-//Description: Adds a product to the user's shopping cart.
-//Request Body: JSON object containing the product ID and quantity.
-//Response: Updated contents of the cart, including product details and total price.
-app.post('/cart/:userId', (req, res) => {
-    const userId = req.params.userId;
-    const { productId, quantity } = req.body;
-
-    // Find the product in the products array
-    const product = products.find(p => p.id == productId);
-
-    if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
+app.post('/cart/:userId', async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const { productId, quantity } = req.body;
+        // Check if product exists (simulating database check)
+        if (!products.find(p => p.id === productId)) {
+            return res.status(404).json({ error: 'Product not found' });
+        }
+        // Handle existing cart and quantity update
+        if (!carts[userId]) {
+            carts[userId] = {};
+        }
+        carts[userId][productId] = {
+            product: products.find(p => p.id === productId), // Ensure product details are included
+            quantity: (carts[userId][productId] ? carts[userId][productId].quantity : 0) + quantity
+        };
+        res.json({ cart: carts[userId], message: 'Product added to cart' });
+    } catch (error) {
+        console.error('Error adding product to cart:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-
-    // Add the product to the user's cart or update the quantity
-    if (!carts[userId]) {
-        carts[userId] = {};
-    }
-    carts[userId][productId] = {
-        product,
-        quantity: (carts[userId][productId] ? carts[userId][productId].quantity : 0) + quantity
-    };
-
-    res.json({ cart: carts[userId], message: 'Product added to cart' });
 });
+
 
 //GET /cart/:userId
-//Description: Retrieves the current state of a user's shopping cart.
-//Request Body: None.
-//Response: A JSON object listing the products in the cart, their quantities, and the total price.
-app.get('/cart/:userId', (req, res) => {
-    const userId = req.params.userId;
-
-    if (!carts[userId]) {
-        return res.status(404).json({ error: 'Cart not found' });
+app.get('/cart/:userId', async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const client = await pool.connect();
+        const result = await client.query(
+            'SELECT c.*, p.name, p.price FROM carts c JOIN products p ON c.product_id = p.id WHERE c.user_id = $1',
+            [userId]
+        );
+        const cartItems = result.rows;
+        if (!cartItems.length) {
+            return res.status(404).json({ error: 'Cart not found' });
+        }
+        // Calculate total price (optional)
+        const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        res.json({ cartItems, totalPrice });
+        client.release();
+    } catch (error) {
+        console.error('Error getting cart:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-
-    res.json({ cart: carts[userId] });
 });
+
 
 //DELETE /cart/:userId/item/:productId
-//Description: Removes a specific product from the user's shopping cart.
-//Request Body: None.
-//Response: The updated contents of the cart after removal of the specified product.
-app.delete('/cart/:userId/item/:productId', (req, res) => {
-    const userId = req.params.userId;
-    const productId = req.params.productId;
+app.delete('/cart/:userId/item/:productId', async (req, res) => {
+    try {
+        const userId = parseInt(req.params.userId);
+        const productId = parseInt(req.params.productId);
+        const client = await pool.connect();
 
-    if (!carts[userId] || !carts[userId][productId]) {
-        return res.status(404).json({ error: 'Product not found in cart' });
+        const existingCartItemResult = await client.query(
+            'SELECT * FROM carts WHERE user_id = $1 AND product_id = $2',
+            [userId, productId]
+        );
+        const existingCartItem = existingCartItemResult.rows[0];
+
+        if (!existingCartItem) {
+            return res.status(404).json({ error: 'Product not found in cart' });
+        }
+
+        await client.query('DELETE FROM carts WHERE user_id = $1 AND product_id = $2', [userId, productId]);
+
+        const cartItemsResult = await client.query(
+            'SELECT c.*, p.name, p.price FROM carts c JOIN products p ON c.product_id = p.id WHERE c.user_id = $1',
+            [userId]
+        );
+        const cartItems = cartItemsResult.rows;
+        res.json({ cart: cartItems, message: 'Product removed from cart' });
+        client.release();
+    } catch (error) {
+        console.error('Error deleting product from cart:', error);
+        res.status(500).json({ error: 'Internal server error' });
     }
-
-    delete carts[userId][productId];
-
-    res.json({ cart: carts[userId], message: 'Product removed from cart' });
 });
 
+
 // Start the server
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(port, () => {
+    console.log(`E-commerce API server running at http://localhost:${port}`);
 });

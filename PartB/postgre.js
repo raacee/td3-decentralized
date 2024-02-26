@@ -1,20 +1,40 @@
+const express = require('express');
 const { Pool } = require('pg');
 
 const pool = new Pool({
-    user: 'your_username',
+    user: 'postgres',
     host: 'localhost',
-    database: 'your_database',
-    password: 'your_password',
+    database: 'ecommerce',
+    password: 'mdp',
     port: 5432,
 });
 
-// Test the connection
-pool.query('SELECT NOW()', (err, res) => {
-    if (err) {
-        console.error('Error connecting to PostgreSQL:', err);
-    } else {
-        console.log('Connected to PostgreSQL:', res.rows[0].now);
+const app = express();
+const PORT = 3001;
+
+app.get('/products', async (req, res) => {
+    try {
+        const { category, inStock } = req.query;
+
+        let query = 'SELECT * FROM products';
+
+        if (category) {
+            query += ` WHERE category = '${category}'`;
+        }
+
+        if (inStock) {
+            const inStockValue = inStock.toLowerCase() === 'true';
+            query += ` AND stock_status = ${inStockValue}`;
+        }
+
+        const result = await pool.query(query);
+        res.json(result.rows);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Internal Server Error' });
     }
 });
 
-module.exports = pool;
+app.listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
