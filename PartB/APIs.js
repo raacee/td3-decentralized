@@ -42,8 +42,8 @@ app.get('/products', async (req, res) => {
 app.get('/products/:id', async (req, res) => {
     try {
         const client = await pool.connect();
-        const productId = parseInt(req.params.id);
-        const result = await client.query('SELECT * FROM products WHERE id = $1', [productId]);
+        const id = parseInt(req.params.id);
+        const result = await client.query('SELECT * FROM products WHERE id = $1', [id]);
         const product = result.rows[0];
 
         if (!product) {
@@ -65,8 +65,8 @@ app.post('/products', async (req, res) => {
         const client = await pool.connect();
         const { name, price, description, category, inStock } = req.body;
         const result = await client.query(
-            'INSERT INTO products (name, price, description, category, instock) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [name, price, description, category, inStock]
+            'INSERT INTO products (id, product, category, description, inStock, price) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+            [id, product, category, description, inStock, price]
         );
         const product = result.rows[0];
         res.json(product);
@@ -81,11 +81,11 @@ app.post('/products', async (req, res) => {
 app.put('/products/:id', async (req, res) => {
     try {
         const client = await pool.connect();
-        const productId = parseInt(req.params.id);
+        const id = parseInt(req.params.id);
         const updatedProduct = req.body;
         const result = await client.query(
-            'UPDATE products SET name = $1, price = $2, description = $3, category = $4, instock = $5 WHERE id = $6 RETURNING *',
-            [updatedProduct.name, updatedProduct.price, updatedProduct.description, updatedProduct.category, updatedProduct.inStock, productId]
+            'UPDATE products SET product = $1, category = $2, description = $3, inStock = 45, price = $5 WHERE id = $6 RETURNING *',
+            [updatedProduct.product, updatedProduct.category, updatedProduct.description, updatedProduct.inStock, updatedProduct.price, updatedProduct.id]
         );
         const updatedProductData = result.rows[0];
         if (!updatedProductData) {
@@ -104,8 +104,8 @@ app.put('/products/:id', async (req, res) => {
 app.delete('/products/:id', async (req, res) => {
     try {
         const client = await pool.connect();
-        const productId = parseInt(req.params.id);
-        const result = await client.query('DELETE FROM products WHERE id = $1 RETURNING *', [productId]);
+        const id = parseInt(req.params.id);
+        const result = await client.query('DELETE FROM products WHERE id = $1 RETURNING *', [id]);
         const deletedProduct = result.rows[0];
         if (!deletedProduct) {
             res.status(404).json({ error: 'Product not found' });
@@ -121,11 +121,11 @@ app.delete('/products/:id', async (req, res) => {
 
 
 
-// ------------------ ORDERS ROUTES ------------------
-app.get('/orders', async (req, res) => {
+// ------------------ order ROUTES ------------------
+app.get('/order', async (req, res) => {
     try {
         const client = await pool.connect();
-        const result = await client.query('SELECT * FROM orders');
+        const result = await client.query('SELECT * FROM order');
         const orders = result.rows;
         res.json(orders);
         client.release();
@@ -136,17 +136,19 @@ app.get('/orders', async (req, res) => {
 });
 
 
-app.post('/orders', async (req, res) => {
+
+app.post('/order', async (req, res) => {
     try {
         const client = await pool.connect();
         const { products } = req.body;
         const orderId = generateOrderId(); // Assuming a function for generating unique IDs
-        const totalPrice = calculateTotalPrice(products); // Assuming a function for calculating total price
+        const total_price = calculatetotal_price(products); // Assuming a function for calculating total price
 
         const result = await client.query(
-            'INSERT INTO orders (order_id, products, total_price, status) VALUES ($1, $2, $3, $4) RETURNING *',
-            [orderId, products, totalPrice, 'pending']
+            'INSERT INTO "order" (orderId, userId, products, total_price, status) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [orderId, userId, products, total_price, 'pending']
         );
+        
         const order = result.rows[0];
 
         res.json(order);
@@ -163,36 +165,36 @@ function generateOrderId() {
     return Math.random().toString(36).substr(2, 9);
 }
 
-function calculateTotalPrice(products) {
-    let totalPrice = 0;
+function calculatetotal_price(products) {
+    let total_price = 0;
 
     for (const product of products) {
-        totalPrice += product.price * product.quantity;
+        total_price += product.price * product.quantity;
     }
-    return totalPrice;
+    return total_price;
 }
 
 
 // ------------------ CART ROUTES ------------------
 
 //POST /cart/:userId
-app.post('/cart/:userId', async (req, res) => {
+app.post('/cart', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
-        const { productId, quantity } = req.body;
+        const { id, quantity } = req.body;
         // Check if product exists (simulating database check)
-        if (!products.find(p => p.id === productId)) {
+        if (!products.find(p => p.id === id)) {
             return res.status(404).json({ error: 'Product not found' });
         }
         // Handle existing cart and quantity update
-        if (!carts[userId]) {
-            carts[userId] = {};
+        if (!cart[userId]) {
+            cart[userId] = {};
         }
-        carts[userId][productId] = {
-            product: products.find(p => p.id === productId), // Ensure product details are included
-            quantity: (carts[userId][productId] ? carts[userId][productId].quantity : 0) + quantity
+        cart[userId][id] = {
+            product: products.find(p => p.id === id), // Ensure product details are included
+            quantity: (cart[userId][id] ? cart[userId][id].quantity : 0) + quantity
         };
-        res.json({ cart: carts[userId], message: 'Product added to cart' });
+        res.json({ cart: cart[userId], message: 'Product added to cart' });
     } catch (error) {
         console.error('Error adding product to cart:', error);
         res.status(500).json({ error: 'Internal server error' });
@@ -201,12 +203,12 @@ app.post('/cart/:userId', async (req, res) => {
 
 
 //GET /cart/:userId
-app.get('/cart/:userId', async (req, res) => {
+app.get('/cart', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
         const client = await pool.connect();
         const result = await client.query(
-            'SELECT c.*, p.name, p.price FROM carts c JOIN products p ON c.product_id = p.id WHERE c.user_id = $1',
+            'SELECT c.*, p.product, p.price FROM cart c JOIN products p ON c.product_id = p.id WHERE c.userId = $1',
             [userId]
         );
         const cartItems = result.rows;
@@ -214,8 +216,8 @@ app.get('/cart/:userId', async (req, res) => {
             return res.status(404).json({ error: 'Cart not found' });
         }
         // Calculate total price (optional)
-        const totalPrice = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-        res.json({ cartItems, totalPrice });
+        const total_price = cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
+        res.json({ cartItems, total_price });
         client.release();
     } catch (error) {
         console.error('Error getting cart:', error);
@@ -224,16 +226,16 @@ app.get('/cart/:userId', async (req, res) => {
 });
 
 
-//DELETE /cart/:userId/item/:productId
-app.delete('/cart/:userId/item/:productId', async (req, res) => {
+//DELETE /cart/:userId/item/:id
+app.delete('/cart', async (req, res) => {
     try {
         const userId = parseInt(req.params.userId);
-        const productId = parseInt(req.params.productId);
+        const id = parseInt(req.params.id);
         const client = await pool.connect();
 
         const existingCartItemResult = await client.query(
-            'SELECT * FROM carts WHERE user_id = $1 AND product_id = $2',
-            [userId, productId]
+            'SELECT * FROM cart WHERE userId = $1 AND product_id = $2',
+            [userId, id]
         );
         const existingCartItem = existingCartItemResult.rows[0];
 
@@ -241,10 +243,10 @@ app.delete('/cart/:userId/item/:productId', async (req, res) => {
             return res.status(404).json({ error: 'Product not found in cart' });
         }
 
-        await client.query('DELETE FROM carts WHERE user_id = $1 AND product_id = $2', [userId, productId]);
+        await client.query('DELETE FROM cart WHERE userId = $1 AND product_id = $2', [userId, id]);
 
         const cartItemsResult = await client.query(
-            'SELECT c.*, p.name, p.price FROM carts c JOIN products p ON c.product_id = p.id WHERE c.user_id = $1',
+            'SELECT c.*, p.product, p.price FROM cart c JOIN products p ON c.product_id = p.id WHERE c.userId = $1',
             [userId]
         );
         const cartItems = cartItemsResult.rows;
