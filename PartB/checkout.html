@@ -1,0 +1,84 @@
+<!-- Checkout page -->
+<!-- This page is used to display the products in the cart and handle the checkout process. -->
+<!-- The products are displayed in a table, and the user can remove products from the cart. -->
+<!-- When the user clicks the "Checkout" button, the checkout process is initiated. -->
+<!-- The checkout process is simulated by a 5-second delay, and then the cart is emptied. -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container mt-5">
+        <h1>Checkout</h1>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Category</th>
+                    <th>In stock</th>
+                    <th>Description</th>
+                    <th>Remove from cart</th>
+                </tr>
+            </thead>
+            <tbody id="cartTableBody">
+                <!-- The products in the cart are displayed here -->
+            </tbody>
+        </table>
+        <button id="checkoutButton" class="btn btn-primary">Checkout</button>
+    </div><br>
+    <h3 id="message">a</h3>
+    <script>
+        // Get the cart from the local storage
+        let cart = JSON.parse(localStorage.getItem('cart'));
+
+        // Display the products in the cart
+        let cartTableBody = document.getElementById('cartTableBody');
+        for (let product of cart) {
+            let row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product.id}</td>
+                <td>${product.name}</td>
+                <td>${product.price}</td>
+                <td>${product.quantity}</td>
+                <td>${product.category}</td>
+                <td>${product.in_stock}</td>
+                <td>${product.description}</td>
+                <td><button class="btn btn-danger" onclick="removeFromCart(${product.id})">Remove</button></td>
+            `;
+            cartTableBody.appendChild(row);
+        }
+
+        // Handle the checkout process
+        document.getElementById('checkoutButton').addEventListener('click', function() {
+            // Show a message to the user by adding it to id="message"
+            var message = document.getElementById('message');
+            message.innerHTML = 'Checking out...';
+            // Simulate the checkout process
+            setTimeout(() => {
+                // Empty the cart
+                localStorage.setItem('cart', JSON.stringify([]));
+            }, 5000);
+            message.firstChild.nodeValue='Checkout complete!';
+        });
+
+        // Function to remove a product from the cart
+        function removeFromCart(id) {
+            // Get the cart from the local storage
+            let cart = JSON.parse(localStorage.getItem('cart'));
+            // Remove the product from the cart
+            cart = cart.filter(product => product.id !== id);
+            // Save the cart to the local storage
+            localStorage.setItem('cart', JSON.stringify(cart));
+            // Refresh the page
+            location.reload();
+        }
+        </script>
+    </body>
+</html>

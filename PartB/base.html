@@ -158,23 +158,11 @@ The front-end has the following features:
     
         // Function to handle checkout
         document.getElementById('checkoutBtn').addEventListener('click', function() {
-            // Example: Send AJAX request to checkout (Replace with your actual backend endpoint)
-            // $.ajax({
-            //     url: '/api/checkout',
-            //     method: 'POST',
-            //     success: function(response) {
-            //         // Handle success response, e.g., redirect to payment page
-            //     },
-            //     error: function(xhr, status, error) {
-            //         // Handle error
-            //     }
-            // });
-    
             // For demonstration purpose, log a message
             console.log('Checkout clicked. Redirecting to payment page...');
-            
-            // Empty the cart (assuming successful checkout)
-            document.getElementById('cartTableBody').innerHTML = '';
+
+            // Redirect to payment page by creating a new window
+            window.open('checkout.html', '_blank');
         });
     </script>
 </body>
