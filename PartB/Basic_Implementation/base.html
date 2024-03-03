@@ -1,5 +1,5 @@
-<!--Create a simple front-end to interact with the postgre server. Please note that style is not the priority here. 
-    You can use tools like Bootstrap or Ant Design if you want. Just don't spend too much time on this task.
+<!--"Create a simple front-end to interact with the postgre server. Please note that style is not the priority here. 
+    You can use tools like Bootstrap or Ant Design if you want. Just don't spend too much time on this task."
 
 The front-end has the following features:
 
@@ -91,28 +91,24 @@ The front-end has the following features:
         document.getElementById('userForm').addEventListener('submit', function(event) {
             event.preventDefault(); // Prevent default form submission
             
-            // Get user input values
             var name = document.getElementById('name').value;
             var gender = document.getElementById('gender').value;
             var age = document.getElementById('age').value;
     
-            // Example: Send AJAX request to add user (Replace with your actual backend endpoint)
-            // $.ajax({
-            //     url: '/api/addUser',
-            //     method: 'POST',
-            //     data: { name: name, gender: gender, age: age },
-            //     success: function(response) {
-            //         // Handle success response
-            //     },
-            //     error: function(xhr, status, error) {
-            //         // Handle error
-            //     }
-            // });
+            // Send AJAX request to add user (Replace with your actual backend endpoint)
+            $.ajax({
+                url: '/api/addUser',
+                method: 'POST',
+                data: { name: name, gender: gender, age: age },
+                success: function(response) {
+                    // Handle success response
+                },
+                error: function(xhr, status, error) {
+                }
+            });
     
-            // For demonstration purpose, log user data
             console.log('New User:', name, gender, age);
     
-            // Clear the form fields
             document.getElementById('name').value = '';
             document.getElementById('gender').value = '';
             document.getElementById('age').value = '';
@@ -120,39 +116,34 @@ The front-end has the following features:
     
         // Function to add product to cart
         function addToCart(productId) {
-            // Example: Send AJAX request to add product to cart (Replace with your actual backend endpoint)
-            // $.ajax({
-            //     url: '/api/addToCart',
-            //     method: 'POST',
-            //     data: { productId: productId },
-            //     success: function(response) {
-            //         // Handle success response
-            //     },
-            //     error: function(xhr, status, error) {
-            //         // Handle error
-            //     }
-            // });
+            // Send AJAX request to add product to cart (Replace with your actual backend endpoint)
+            $.ajax({
+                url: '/api/addToCart',
+                method: 'POST',
+                data: { productId: productId },
+                success: function(response) {
+                    // Handle success response
+                },
+                error: function(xhr, status, error) {
+                }
+            });
     
-            // For demonstration purpose, log the added product ID
             console.log('Product added to cart:', productId);
         }
     
         // Function to remove product from cart
         function removeFromCart(productId) {
-            // Example: Send AJAX request to remove product from cart (Replace with your actual backend endpoint)
-            // $.ajax({
-            //     url: '/api/removeFromCart',
-            //     method: 'POST',
-            //     data: { productId: productId },
-            //     success: function(response) {
-            //         // Handle success response
-            //     },
-            //     error: function(xhr, status, error) {
-            //         // Handle error
-            //     }
-            // });
-    
-            // For demonstration purpose, log the removed product ID
+            // Send AJAX request to remove product from cart (Replace with your actual backend endpoint)
+            $.ajax({
+                url: '/api/removeFromCart',
+                method: 'POST',
+                data: { productId: productId },
+                success: function(response) {
+                    // Handle success response
+                },
+                error: function(xhr, status, error) {
+                }
+            });
             console.log('Product removed from cart:', productId);
         }
     

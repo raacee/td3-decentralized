@@ -76,7 +76,7 @@
             cart = cart.filter(product => product.id !== id);
             // Save the cart to the local storage
             localStorage.setItem('cart', JSON.stringify(cart));
-            // Refresh the page
+            // Reload the page
             location.reload();
         }
         </script>
